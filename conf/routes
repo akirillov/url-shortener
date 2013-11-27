@@ -1,6 +1,20 @@
-# Routes
-# This file defines all application routes (Higher priority routes first)
-# ~~~~
+#REST API for URL shortening
+
+GET         /token                controllers.Application.getToken
+
+POST        /link                 controllers.Application.postLink(code = "")
+
+POST        /link/:code           controllers.Application.postLink(code: String)
+
+GET         /link                 controllers.Application.getLink(code  = "")
+
+GET         /link/:code           controllers.Application.getLink(code: String)
+
+GET         /folder               controllers.Application.getFolder(id = "")
+
+GET         /folder/:id           controllers.Application.getFolder(id: String)
+
+GET         /link/:code/clicks    controllers.Application.getClicks(code: String)
 
 # Home page
 GET     /                           controllers.Application.index
