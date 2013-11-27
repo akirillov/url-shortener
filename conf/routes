@@ -2,9 +2,9 @@
 
 GET         /token                controllers.Application.getToken
 
-POST        /link                 controllers.Application.postLink(code = "")
+POST        /link                 controllers.Application.postLink
 
-POST        /link/:code           controllers.Application.postLink(code: String)
+POST        /link/:code           controllers.Application.postStats(code: String)
 
 GET         /link                 controllers.Application.getLink(code  = "")
 
