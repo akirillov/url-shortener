@@ -4,6 +4,7 @@ import anorm.{NotAssigned, Pk}
 import play.api.db._
 import anorm._
 import anorm.SqlParser._
+import play.api.Play.current
 
 
 case class User(id: Pk[Long] = NotAssigned, secret: String, token: String)
@@ -17,10 +18,17 @@ object User  {
     }
   }
 
-  def findBy(id: Pk[Long]): User = {
+  def findById(id: Pk[Long]): User = {
     DB.withConnection {
       implicit connection =>
         SQL("select * from user where id = {id}").on("id" -> id.get).using(parser).single()
+    }
+  }
+
+  def findBySecret(secret: String): User = {
+    DB.withConnection {
+      implicit connection =>
+        SQL("select * from user where secret = {secret}").on("secret" -> secret).using(parser).single()
     }
   }
 }

@@ -4,6 +4,7 @@ import anorm._
 import anorm.SqlParser._
 import play.api.db.DB
 import java.util.Date
+import play.api.Play.current
 
 case class Click(id: Pk[Long] = NotAssigned, linkId: Long, date: Date, referrer: String, remoteIP: String)
 

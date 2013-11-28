@@ -20,6 +20,7 @@ class EvolutionsTest extends Specification {
             SQL("select count(1) from click").execute()
         }
       }
+      success
     }
   }
 }
