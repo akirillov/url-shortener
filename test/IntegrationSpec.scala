@@ -1,7 +1,6 @@
 package test
 
 import org.specs2.mutable._
-
 import play.api.test._
 import play.api.test.Helpers._
 
@@ -18,11 +17,8 @@ class IntegrationSpec extends Specification {
 
         browser.goTo("http://localhost:3333/")
 
-        browser.pageSource must contain("Your new application is ready.")
-       
+        browser.pageSource must contain("MAYBE")
       }
     }
-    
   }
-  
 }
