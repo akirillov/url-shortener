@@ -10,9 +10,9 @@ object DBHelper {
 
   def createUser(user: User){
     DB.withConnection { implicit connection =>
-      SQL("insert into user (secret, token) values ({secret}, {token})")
+      SQL("insert into user (uid, token) values ({uid}, {token})")
       .on(
-        'secret -> user.secret,
+        'uid -> user.uid,
         'token -> user.token
       ).executeUpdate()
     }

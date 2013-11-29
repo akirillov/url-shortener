@@ -34,20 +34,24 @@ object JsonFormats {
 
   //Writes -------------------------------------------------------
 
-  implicit val linkWrites: Writes[Link] = (
+  implicit val linkWrites: Writes[LinkResponse] = (
     (__ \ "url").write[String] and
       (__ \ "code").write[String]
-    )(unlift(Link.unapply))
+    )(unlift(LinkResponse.unapply))
 
-  implicit val folderWrites: Writes[Folder] = (
+  implicit val folderWrites: Writes[FolderResponse] = (
     (__ \ "id").write[String] and
       (__ \ "title").write[String]
-    )(unlift(Folder.unapply))
+    )(unlift(FolderResponse.unapply))
 
-  implicit val codeStatsWrites: Writes[CodeStats] = (
-    (__ \ "link").write[Link] and
+  implicit val codeStatsWrites: Writes[CodeStatsResponse] = (
+    (__ \ "link").write[LinkResponse] and
       (__ \ "folder_id").write[String] and
       (__ \ "clicks").write[Int]
-    )(unlift(CodeStats.unapply))
+    )(unlift(CodeStatsResponse.unapply))
 
+  implicit val clickWrites: Writes[ClickResponse] = (
+    (__ \ "referrer").write[String] and
+      (__ \ "remoteIP").write[String]
+    )(unlift(ClickResponse.unapply))
 }

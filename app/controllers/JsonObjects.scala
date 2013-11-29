@@ -13,8 +13,10 @@ case class PostLinkRequest(token: String, url: String, code: Option[String], fol
 
 //Responses
 
-case class Link(url: String, code: String)
+case class LinkResponse(url: String, code: String)
 
-case class CodeStats(link: Link, folder_id: String, clicks: Int)
+case class CodeStatsResponse(link: LinkResponse, folder_id: String, clicks: Int)
 
-case class Folder(id: String, title: String)
+case class FolderResponse(id: String, title: String)
+
+case class ClickResponse(referrer: String, remoteIp: String)

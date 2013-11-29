@@ -2,12 +2,13 @@
 # --- !Ups
 CREATE TABLE user (
 id                            INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-secret                        VARCHAR(255) NOT NULL,
+uid                           VARCHAR(255) NOT NULL,
 token                         VARCHAR(255),
 );
 
 CREATE TABLE folder (
 id                            INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+token                         VARCHAR(255) NOT NULL,
 text_id                       VARCHAR(255) NOT NULL,
 title                         VARCHAR(255) NOT NULL,
 uid                           INT NOT NULL,
@@ -18,6 +19,7 @@ CREATE TABLE link(
 id                            INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 uid                           INT NOT NULL,
 fid                           INT NOT NULL,
+token                         VARCHAR(255) NOT NULL,
 url                           VARCHAR(255) NOT NULL,
 code                          VARCHAR(255) NOT NULL,
 FOREIGN KEY                   (uid) REFERENCES user(id),

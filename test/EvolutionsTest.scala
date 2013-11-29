@@ -1,5 +1,3 @@
-package db
-
 import play.api.test.FakeApplication
 import play.api.test.Helpers._
 import play.api.db.DB

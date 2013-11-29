@@ -16,13 +16,29 @@ class UserTest extends Specification {
   }
 
   "User Model" should {
-    "find exactly one user by his secret" in {
+    "find exactly one user by his uid" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
 
-          createUser(User(null, "super_secret", "token"))
+          createUser(User(null, "uid", "token"))
 
-          User.findBySecret("super_secret").token must be equalTo "token"
+          val token = User.findByUid("uid") match {
+            case Some(user) => user.token
+            case _ => ""
+          }
 
+          token mustEqual "token"
+
+      }
+    }
+
+    "create user with id" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+
+        val user = User.createWithSecret("uid", "token")
+
+        user.id mustNotEqual null
+        user.uid mustEqual "uid"
+        user.token mustEqual "token"
       }
     }
   }
