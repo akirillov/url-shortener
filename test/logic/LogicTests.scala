@@ -157,4 +157,33 @@ class LogicTests extends Specification {
       }
     }
   }
+
+  "Code stats request logic in Service DAO" should {
+    "throw exception if user token incorrect" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        ServiceDAO.getStatsForCode("code", "token") must throwA(new Exception("No user with such token! Incident will be reported."))
+
+      }
+    }
+    "throw exception if code is not presented" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        createUser(User(null, "uid", "token"))
+
+        ServiceDAO.getStatsForCode("code", "token") must throwA(new Exception("No link with such code!"))
+      }
+    }
+    "provide proper stats response object" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        createUser(User(null, "uid", "token"))
+        createLink("token", "folder", "awesome.org", "short")
+
+        val response = ServiceDAO.getStatsForCode("short", "token")
+
+        response.clicks mustEqual 0
+        response.folder_id mustEqual "folder"
+        response.link mustEqual LinkResponse("awesome.org", "short")
+
+      }
+    }
+  }
 }

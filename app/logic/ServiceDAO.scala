@@ -94,9 +94,17 @@ object ServiceDAO {
   }
 
   def getStatsForCode(code: String, token: String): CodeStatsResponse = {
-
-
-    null
+    User.findByToken(token) match {
+      case None => throw new Exception("No user with such token! Incident will be reported.")
+      case Some(user) => {
+         Link.findByCode(code) match {
+           case None => throw new Exception("No link with such code!")
+           case Some(link) => CodeStatsResponse(LinkResponse(link.url, link.code),
+                                                Folder.getById(link.folderId).getOrElse(throw new Exception("Data integrity error!")).textId,
+                                                 link.clicks)
+         }
+      }
+    }
   }
 
   def getFolderLinks(request: GetDataRequest): FolderResponse = {

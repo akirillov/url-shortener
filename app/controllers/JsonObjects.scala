@@ -15,7 +15,7 @@ case class PostLinkRequest(token: String, url: String, code: Option[String], fol
 
 case class LinkResponse(url: String, code: String)
 
-case class CodeStatsResponse(link: LinkResponse, folder_id: String, clicks: Int)
+case class CodeStatsResponse(link: LinkResponse, folder_id: String, clicks: Long)
 
 case class FolderResponse(id: String, title: String)
 

@@ -47,7 +47,7 @@ object JsonFormats {
   implicit val codeStatsWrites: Writes[CodeStatsResponse] = (
     (__ \ "link").write[LinkResponse] and
       (__ \ "folder_id").write[String] and
-      (__ \ "clicks").write[Int]
+      (__ \ "clicks").write[Long]
     )(unlift(CodeStatsResponse.unapply))
 
   implicit val clickWrites: Writes[ClickResponse] = (

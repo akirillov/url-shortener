@@ -5,6 +5,7 @@ import play.api.db._
 import anorm._
 import anorm.SqlParser._
 import play.api.Play.current
+import models.Helper._
 
 
 case class User(id: Pk[Long] = NotAssigned, uid: String, token: String)
@@ -22,7 +23,7 @@ object User  {
     DB.withConnection {
       implicit connection =>
         val users = SQL("select * from user where uid = {uid}").on("uid" -> uid).using(parser).list()
-        checkAndReturnUser(users, "user ID")
+        checkAndReturn(users, "user ID")
     }
   }
 
@@ -30,17 +31,11 @@ object User  {
     DB.withConnection {
       implicit connection =>
         val users = SQL("select * from user where token = {token}").on("token" -> token).using(parser).list()
-        checkAndReturnUser(users, "token")
+        checkAndReturn(users, "token")
     }
   }
 
-  def checkAndReturnUser(users: Seq[User], field: String): Option[User] ={
-    users.size match {
-      case 0 => None
-      case 1 => Some(users.head)
-      case _ => throw new Exception("Data integrity error: more than one user with same "+field)
-    }
-  }
+
 
   def createWithSecret(uid: String, token: String): User = {
     DB.withConnection {
