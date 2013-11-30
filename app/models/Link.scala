@@ -5,7 +5,7 @@ import anorm.SqlParser._
 import play.api.db.DB
 import play.api.Play.current
 
-case class Link(id: Pk[Long] = NotAssigned, userId: Long, folderId: Long, url: String, code: String)
+case class Link(id: Pk[Long] = NotAssigned, userId: Long, folderId: Long, url: String, code: String, clicks: Long)
 
 object Link  {
   val parser = {
@@ -13,15 +13,22 @@ object Link  {
       get[Long]("uid") ~
       get[Long]("fid") ~
       get[String]("url") ~
-      get[String]("code") map {
-      case pk ~ uid ~ fid ~ url ~ code => Link(pk, uid, fid, url, code)
+      get[String]("code") ~
+      get[Long]("clicks") map {
+      case pk ~ uid ~ fid ~ url ~ code ~ clicks => Link(pk, uid, fid, url, code, clicks)
     }
   }
 
-  def findBy(id: Pk[Long]): Link = {
+  def findByCode(code: String): Option[Link] = {
     DB.withConnection {
       implicit connection =>
-        SQL("select * from link where id = {id}").on("id" -> id.get).using(parser).single()
+        val links = SQL("select * from link where code = {code}").on("code" -> code).using(parser).list()
+
+        links.size match {
+          case 0 => None
+          case 1 => Some(links.head)
+          case _ => throw new Exception("Data integrity error: more than one link with same code !")
+        }
     }
   }
 
@@ -45,7 +52,16 @@ object Link  {
           case Row(id: Int) => id
         }.head
 
-        Link(new Id(id), uid, fid, url, code)
+        Link(new Id(id), uid, fid, url, code, 0)
+    }
+  }
+
+  def incClicksCount(linkID: Long){
+    DB.withConnection {
+      implicit connection =>
+        SQL("update link set clicks=clicks+1 where id = {id};").on(
+          'id -> linkID
+        ).executeUpdate()
     }
   }
 }

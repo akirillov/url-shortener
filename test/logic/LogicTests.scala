@@ -6,16 +6,16 @@ import play.api.test.Helpers._
 import play.api.test.FakeApplication
 import helpers.DBHelper._
 import play.api.Play.current
-import models.User
-import controllers.{PostLinkRequest, TokenRequest}
+import models.{Link, User}
+import controllers._
 import play.api.db.DB
 import anorm._
-import controllers.PostLinkRequest
 import play.api.test.FakeApplication
 import scala.Some
-import controllers.TokenRequest
 import anorm.SqlParser._
 import anorm.~
+import play.api.test.FakeApplication
+import scala.Some
 import controllers.PostLinkRequest
 import play.api.test.FakeApplication
 import scala.Some
@@ -132,5 +132,29 @@ class LogicTests extends Specification {
       }
     }
 
+  }
+
+  "Click posting logic in Service DAO" should {
+    "get proper url for code and increment clicks count" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+
+        createUser(User(null, "uid", "token"))
+        createLink("token", "folder", "awesome.org", "short")
+
+        val req = PostStatsRequest("referrer", "127.0.0.1")
+
+        val res = ServiceDAO.postClick("short", req)
+
+        res mustEqual "awesome.org"
+        Link.findByCode("short").get.clicks mustEqual 1
+      }
+    }
+    "throw exception if code is not presented" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        val req = PostStatsRequest("referrer", "127.0.0.1")
+
+        ServiceDAO.postClick("short", req) must throwA(new Exception("No such code!"))
+      }
+    }
   }
 }

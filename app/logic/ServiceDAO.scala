@@ -5,7 +5,7 @@ import controllers.LinkResponse
 import controllers.GetDataRequest
 import controllers.PostLinkRequest
 import controllers.PostStatsRequest
-import models.{Folder, Link, User}
+import models.{Click, Folder, Link, User}
 import java.security.MessageDigest
 import java.util.zip.CRC32
 
@@ -70,22 +70,27 @@ object ServiceDAO {
       case None => Folder.getRootFolderForUser(request.token).id.get
     }
 
-    val link = Link.createLink(User.findByToken(request.token).get.id.get, folderID, request.url, code)
+    Link.createLink(User.findByToken(request.token).get.id.get, folderID, request.url, code)
 
     LinkResponse(request.url, code)
   }
 
   /**
    * Method provides logic for posting click event stats to corresponding link
+   * @param code - shortened link code
    * @param request - [[controllers.PostStatsRequest]]
    * @return original link
    */
-  def getLink(request: PostStatsRequest): String = {
+  def postClick(code: String, request: PostStatsRequest): String = {
+    val link = Link.findByCode(code) match {
+      case Some(l) => l
+      case None => throw new Exception("No such code!")
+    }
 
-    //TODO: save click object (async is better here)
+    Click.postClick(link.id.get, request.referrer, request.remote_ip)
+    Link.incClicksCount(link.id.get)
 
-    //TODO: не забыть заапдейтить поле счета кликов в объекте Link
-    null
+    link.url
   }
 
   def getStatsForCode(code: String, token: String): CodeStatsResponse = {

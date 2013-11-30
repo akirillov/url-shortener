@@ -20,6 +20,7 @@ uid                           INT NOT NULL,
 fid                           INT,
 url                           VARCHAR(255) NOT NULL,
 code                          VARCHAR(255) NOT NULL,
+clicks                        INT DEFAULT 0,
 FOREIGN KEY                   (uid) REFERENCES user(id),
 FOREIGN KEY                   (fid) REFERENCES folder(id)
 );
@@ -30,7 +31,7 @@ id                            INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 lid                           INT NOT NULL,
 date                          DATE NOT NULL,
 referrer                      VARCHAR(255) NOT NULL,
-remoteIP                      VARCHAR(255) NOT NULL,
+remote_ip                      VARCHAR(255) NOT NULL,
 FOREIGN KEY                   (lid) REFERENCES link(id)
 );
 

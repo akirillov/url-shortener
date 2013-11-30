@@ -18,15 +18,6 @@ object User  {
     }
   }
 
-
-  //TODO: candidate for removal
-  def findById(id: Pk[Long]): User = {
-    DB.withConnection {
-      implicit connection =>
-        SQL("select * from user where id = {id}").on("id" -> id.get).using(parser).single()
-    }
-  }
-
   def findByUid(uid: String): Option[User] = {
     DB.withConnection {
       implicit connection =>

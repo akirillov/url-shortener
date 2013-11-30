@@ -8,13 +8,18 @@ import play.api.Play.current
 
 object DBHelper {
 
-  def createUser(user: User){
+  def createUser(user: User) = {
     DB.withConnection { implicit connection =>
       SQL("insert into user (uid, token) values ({uid}, {token})")
       .on(
         'uid -> user.uid,
         'token -> user.token
       ).executeUpdate()
+      val id = SQL("SELECT SCOPE_IDENTITY()")().collect {
+        case Row(id: Int) => id
+      }.head
+
+      User(new Id(id), user.uid, user.token)
     }
   }
 
@@ -54,7 +59,7 @@ object DBHelper {
             case Row(id: Int) => id
           }.head
 
-          Link(new Id(id), uid, fid, url, code)
+          Link(new Id(id), uid, fid, url, code, 0)
       }
 
   }
@@ -79,7 +84,18 @@ object DBHelper {
   }
 
 
+  def dropAllClicks{
+    DB.withConnection { implicit connection =>
+      SQL("delete from click").executeUpdate()
+    }
+  }
 
 
+
+  def clearAll{
+    dropAllFolders
+    dropAllUsers
+    dropAllClicks
+  }
 
 }
