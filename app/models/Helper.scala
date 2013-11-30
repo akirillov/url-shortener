@@ -5,7 +5,7 @@ object Helper {
     objects.size match {
       case 0 => None
       case 1 => Some(objects.head)
-      case _ => throw new Exception("Data integrity error: more than one user with same "+field)
+      case _ => throw new Exception("Data integrity error: more than one entity with same "+field)
     }
   }
 }

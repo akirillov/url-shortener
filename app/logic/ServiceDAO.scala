@@ -107,11 +107,27 @@ object ServiceDAO {
     }
   }
 
-  def getFolderLinks(request: GetDataRequest): FolderResponse = {
+  def getFolderLinks(folderID: String, request: GetDataRequest): List[LinkResponse] = {
+    User.findByToken(request.token) match {
+      case None => throw new Exception("No user with such token! Incident will be reported.")
+      case Some(user) => {
+        Folder.getByTextId(folderID, request.token) match {
+          case None => throw new Exception("No folder with such ID!")
+          case Some(folder) =>
 
+            val limits = (request.offset, request.limit) match {
+                case (Some(offset), None) => "limit -1 offset "+offset
+                case (None, Some(limit)) => "limit "+limit
+                case (Some(offset), Some(limit)) => "limit "+limit+" offset "+offset
+                case _ => ""
+              }
 
+          println("DEBUG: "+limits)
 
-    null
+            Link.getLinksByFolderID(folder.id.get, limits).map(link => LinkResponse(link.url, link.code)).toList
+        }
+      }
+    }
   }
 
   def getUserLinks(request: GetDataRequest): List[LinkResponse] = {

@@ -4,6 +4,7 @@ import anorm._
 import anorm.SqlParser._
 import play.api.db.DB
 import play.api.Play.current
+import models.Helper._
 
 case class Link(id: Pk[Long] = NotAssigned, userId: Long, folderId: Long, url: String, code: String, clicks: Long)
 
@@ -24,11 +25,14 @@ object Link  {
       implicit connection =>
         val links = SQL("select * from link where code = {code}").on("code" -> code).using(parser).list()
 
-        links.size match {
-          case 0 => None
-          case 1 => Some(links.head)
-          case _ => throw new Exception("Data integrity error: more than one link with same code !")
-        }
+        checkAndReturn(links, "code")
+    }
+  }
+
+  def getLinksByFolderID(id: Long, opts: String): Seq[Link] = {
+    DB.withConnection {
+      implicit connection =>
+        SQL("select * from link where fid = {fid} "+opts+";").on("fid" -> id).using(parser).list()
     }
   }
 

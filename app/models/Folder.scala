@@ -21,7 +21,7 @@ object Folder  {
   def checkExists(textID: String, token: String): Boolean = {
     DB.withConnection {
       implicit connection =>
-        SQL("select count(*) from folder join user on folder.uid = user.id where text_id = {textID} and user.token = {token}").on("token" -> token, "textID" -> textID).as(scalar[Long].single) > 0
+        SQL("select count(*) from folder join user on folder.uid = user.id where text_id = {folderID} and user.token = {token}").on("token" -> token, "folderID" -> textID).as(scalar[Long].single) > 0
     }
   }
 
@@ -56,7 +56,7 @@ object Folder  {
   def getByTextId(textID: String, token: String): Option[Folder] = {
     DB.withConnection {
       implicit connection =>
-        val folders = SQL("select folder.id, folder.uid, folder.text_id, folder.title from folder join user on folder.uid = user.id where text_id = {textID} and user.token={token}").on("textID" -> textID, "token" -> token).using(parser).list()
+        val folders = SQL("select folder.id, folder.uid, folder.text_id, folder.title from folder join user on folder.uid = user.id where text_id = {folderID} and user.token={token}").on("folderID" -> textID, "token" -> token).using(parser).list()
 
         checkAndReturn(folders, "Text ID")
     }

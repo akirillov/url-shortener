@@ -9,36 +9,45 @@ import play.api.Play.current
 object DBHelper {
 
   def createUser(user: User) = {
-    DB.withConnection { implicit connection =>
-      SQL("insert into user (uid, token) values ({uid}, {token})")
-      .on(
-        'uid -> user.uid,
-        'token -> user.token
-      ).executeUpdate()
-      val id = SQL("SELECT SCOPE_IDENTITY()")().collect {
-        case Row(id: Int) => id
-      }.head
+    User.findByUid(user.uid) match {
+      case Some(u) => u
+      case None =>
+        DB.withConnection { implicit connection =>
+        SQL("insert into user (uid, token) values ({uid}, {token})")
+          .on(
+          'uid -> user.uid,
+          'token -> user.token
+        ).executeUpdate()
+        val id = SQL("SELECT SCOPE_IDENTITY()")().collect {
+          case Row(id: Int) => id
+        }.head
 
-      User(new Id(id), user.uid, user.token)
+        User(new Id(id), user.uid, user.token)
+      }
     }
   }
 
   def createFolder(token: String, folderID: String, folderTitle: String): Folder = {
-    val uid = User.findByToken(token).get.id
+    Folder.getByTextId(folderID, token) match {
+      case Some(f) => f
+      case None => {
+        val uid = User.findByToken(token).get.id
 
-    DB.withConnection { implicit connection =>
-      SQL("insert into folder (uid, text_id, title) values ({uid}, {text_id}, {title})")
-        .on(
-        'uid -> uid,
-        'text_id -> folderID,
-        'title -> folderTitle
-      ).executeUpdate()
+        DB.withConnection { implicit connection =>
+          SQL("insert into folder (uid, text_id, title) values ({uid}, {text_id}, {title})")
+            .on(
+            'uid -> uid,
+            'text_id -> folderID,
+            'title -> folderTitle
+          ).executeUpdate()
 
-      val id = SQL("SELECT SCOPE_IDENTITY()")().collect {
-        case Row(id: Int) => id
-      }.head
+          val id = SQL("SELECT SCOPE_IDENTITY()")().collect {
+            case Row(id: Int) => id
+          }.head
 
-      Folder(new Id(id), uid.get, folderID, folderTitle)
+          Folder(new Id(id), uid.get, folderID, folderTitle)
+        }
+      }
     }
   }
 
