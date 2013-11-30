@@ -5,17 +5,32 @@ import org.specs2.specification.Scope
 import play.api.test.Helpers._
 import play.api.test.FakeApplication
 import helpers.DBHelper._
-import play.api.test.FakeApplication
+import play.api.Play.current
 import models.User
+import controllers.{PostLinkRequest, TokenRequest}
+import play.api.db.DB
+import anorm._
+import controllers.PostLinkRequest
+import play.api.test.FakeApplication
+import scala.Some
+import controllers.TokenRequest
+import anorm.SqlParser._
+import anorm.~
+import controllers.PostLinkRequest
+import play.api.test.FakeApplication
+import scala.Some
 import controllers.TokenRequest
 
 class LogicTests extends Specification {
 
   implicit val context = new Scope with After {
-    def after = running(FakeApplication(additionalConfiguration = inMemoryDatabase())) { dropAllUsers }
+    def after = running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+      dropAllUsers
+      dropAllFolders
+    }
   }
 
-  "Service DAO" should {
+  "User logic in Service DAO" should {
     "return token if user exists in DB" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
 
@@ -42,5 +57,80 @@ class LogicTests extends Specification {
         ServiceDAO.getToken(TokenRequest("uid2", "secret")) mustEqual token
       }
     }
+  }
+
+  "Link posting logic in Service DAO" should {
+    "create code in case of empty optional folder id and provided code" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+
+        createUser(User(null, "uid", "token"))
+
+        val req = PostLinkRequest("token", "http://someawesomewebpage.com", None, None)
+
+        val res = ServiceDAO.shortenUrl(req)
+
+        res.code mustEqual ServiceDAO.shorten(req.url)
+        res.url mustEqual req.url
+
+      }
+    }
+
+    "create link with provided code if it is available" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        createUser(User(null, "uid", "token"))
+
+        val req = PostLinkRequest("token", "http://someawesomewebpage.com", Some("short"), None)
+
+        val res = ServiceDAO.shortenUrl(req)
+
+        res.code mustEqual req.code.get
+        res.url mustEqual req.url
+      }
+    }
+
+    "throw exception if provided code is already used" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        createUser(User(null, "uid", "token"))
+
+        createLink("token", "folder", "awesome.com", "short_code")
+
+        ServiceDAO.shortenUrl(PostLinkRequest("token", "awesome.com", Some("short_code"), None)) must throwA(new Exception("Code unavailable, sorry"))
+
+      }
+    }
+
+
+    "assign folder to the link if folder exists" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        createUser(User(null, "uid", "token"))
+
+        createFolder("token", "folder", "title")
+
+        ServiceDAO.shortenUrl(PostLinkRequest("token", "awesome.com", None, Some("folder"))) must not throwA(new Exception("Folder does not exist, sorry"))
+      }
+    }
+
+
+    "throw exception if specified folder does not exist" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        createUser(User(null, "uid", "token"))
+
+        ServiceDAO.shortenUrl(PostLinkRequest("token", "awesome.com", None, Some("folder"))) must throwA(new Exception("Folder does not exist, sorry"))
+      }
+    }
+
+
+    "assign provided code and folder to the link is everything is ok" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+        createUser(User(null, "uid", "token"))
+
+        createFolder("token", "folder", "title")
+
+        ServiceDAO.shortenUrl(PostLinkRequest("token", "awesome.com", Some("short_code"), Some("folder"))) must not throwA(new Exception("Folder does not exist, sorry"))
+        ServiceDAO.shortenUrl(PostLinkRequest("token", "awesome.com", Some("another_short_code"), Some("folder"))) must not throwA(new Exception("Code unavailable, sorry"))
+
+      }
+    }
+
   }
 }

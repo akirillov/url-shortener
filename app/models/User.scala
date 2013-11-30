@@ -31,12 +31,23 @@ object User  {
     DB.withConnection {
       implicit connection =>
         val users = SQL("select * from user where uid = {uid}").on("uid" -> uid).using(parser).list()
+        checkAndReturnUser(users, "user ID")
+    }
+  }
 
-        users.size match {
-          case 0 => None
-          case 1 => Some(users.head)
-          case _ => throw new Exception("Data integrity error: more than one user with same UID!")
-        }
+  def findByToken(token: String): Option[User] = {
+    DB.withConnection {
+      implicit connection =>
+        val users = SQL("select * from user where token = {token}").on("token" -> token).using(parser).list()
+        checkAndReturnUser(users, "token")
+    }
+  }
+
+  def checkAndReturnUser(users: Seq[User], field: String): Option[User] ={
+    users.size match {
+      case 0 => None
+      case 1 => Some(users.head)
+      case _ => throw new Exception("Data integrity error: more than one user with same "+field)
     }
   }
 
@@ -50,7 +61,8 @@ object User  {
         val id = SQL("SELECT SCOPE_IDENTITY()")().collect {
           case Row(id: Int) => id
         }.head
-        return User(new Id(id), uid, token)
+
+        User(new Id(id), uid, token)
     }
   }
 }

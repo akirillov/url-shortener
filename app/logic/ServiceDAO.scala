@@ -5,13 +5,19 @@ import controllers.LinkResponse
 import controllers.GetDataRequest
 import controllers.PostLinkRequest
 import controllers.PostStatsRequest
-import models.User
+import models.{Folder, Link, User}
 import java.security.MessageDigest
+import java.util.zip.CRC32
 
 object ServiceDAO {
 
   def createToken(user: String, secret: String) = MessageDigest.getInstance("SHA").digest(user.concat(secret).getBytes).mkString
 
+  def shorten(url: String) = {
+    val crc = new CRC32()
+    crc.update(url.getBytes())
+    crc.getValue().toHexString
+  }
 
   /**
    * Methods checks whether user exists in DB and returns her token.
@@ -36,7 +42,37 @@ object ServiceDAO {
    * @return [[controllers.LinkResponse]] instance
    */
   def shortenUrl(request: PostLinkRequest): LinkResponse = {
-    null
+
+    /*
+
+    Это укороченный адрес.
+Можно создать ссылку с желаемым кодом, тогда, если код доступен, то возвращается он же.
+Если код недоступен, то, наверное, сервис говорит «ошибка, код недоступен». Это было бы самым простым вариантом.
+Если код не передан, генерируется случайный свободный код.
+
+    */
+
+    val code = request.code match {
+      case Some(c) => {
+        if(Link.checkExists(c)) throw new Exception("Code unavailable, sorry")
+        else c
+      }
+      case None => shorten(request.url)
+    }
+
+    //TODO: really, folder mechanics suck (how do we CRUD folders?)
+
+    val folderID = request.folderId match {
+      case Some(fid) => Folder.getByTextId(fid, request.token) match {
+        case Some(folder) => folder.id.get
+        case None => throw new Exception("Folder does not exist, sorry")
+      }
+      case None => Folder.getRootFolderForUser(request.token).id.get
+    }
+
+    val link = Link.createLink(User.findByToken(request.token).get.id.get, folderID, request.url, code)
+
+    LinkResponse(request.url, code)
   }
 
   /**

@@ -31,6 +31,21 @@ class UserTest extends Specification {
       }
     }
 
+    "find exactly one user by his token" in {
+      running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
+
+        createUser(User(null, "uid", "secret_token"))
+
+        val uid = User.findByToken("secret_token") match {
+          case Some(user) => user.uid
+          case _ => ""
+        }
+
+        uid mustEqual "uid"
+
+      }
+    }
+
     "create user with id" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
 
