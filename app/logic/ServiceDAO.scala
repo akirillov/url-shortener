@@ -131,7 +131,21 @@ object ServiceDAO {
   }
 
   def getUserLinks(request: GetDataRequest): List[LinkResponse] = {
-    null
+    User.findByToken(request.token) match {
+      case None => throw new Exception("No user with such token! Incident will be reported.")
+      case Some(user) => {
+            val limits = (request.offset, request.limit) match {
+              case (Some(offset), None) => "limit -1 offset "+offset
+              case (None, Some(limit)) => "limit "+limit
+              case (Some(offset), Some(limit)) => "limit "+limit+" offset "+offset
+              case _ => ""
+            }
+
+            println("DEBUG: "+limits)
+
+            Link.getLinksByUserID(user.id.get, limits).map(link => LinkResponse(link.url, link.code)).toList
+      }
+    }
   }
 
   def getFolders(token: String): List[FolderResponse] = {

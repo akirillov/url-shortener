@@ -36,6 +36,13 @@ object Link  {
     }
   }
 
+  def getLinksByUserID(id: Long, opts: String): Seq[Link] = {
+    DB.withConnection {
+      implicit connection =>
+        SQL("select * from link where uid = {uid} "+opts+";").on("uid" -> id).using(parser).list()
+    }
+  }
+
   def checkExists(code: String): Boolean = {
     DB.withConnection {
       implicit connection =>
