@@ -54,7 +54,7 @@ class FolderLinksRequestTest extends Specification {
 
         createUser(User(null, "uid", "token"))
 
-        (1 to 10).foreach(x => createFolder("token", "id"+x, "title" + x))
+        1 to 10 foreach(x => createFolder("token", "id"+x, "title" + x))
 
         ServiceDAO.getFolders("token").size mustEqual 10
       }

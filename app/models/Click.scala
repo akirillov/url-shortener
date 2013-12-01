@@ -14,7 +14,7 @@ object Click  {
       get[Long]("lid") ~
       get[Date]("date") ~
       get[String]("referrer") ~
-      get[String]("remoteIP") map {
+      get[String]("remote_ip") map {
       case pk ~ lid ~ date ~ referrer ~ remoteIP => Click(pk, lid, date, referrer, remoteIP)
     }
   }
@@ -24,11 +24,11 @@ object Click  {
 
     DB.withConnection {
       implicit connection =>
-        SQL("insert into click(lid, date, referrer, remote_ip) values ({lid}, {date}, {referrer}, {remoteIP});").on(
+        SQL("insert into click(lid, date, referrer, remote_ip) values ({lid}, {date}, {referrer}, {remote_ip});").on(
           'lid -> linkID,
           'date -> date,
           'referrer -> referrer,
-          'remoteIP -> remoteIP
+          'remote_ip -> remoteIP
         ).executeUpdate()
 
         val id = SQL("SELECT SCOPE_IDENTITY()")().collect {
@@ -37,5 +37,12 @@ object Click  {
 
         Click(new Id(id), linkID, date, referrer, remoteIP)
     }
+  }
+
+  def getClicksByLinkID(lid: Long, opts: String): Seq[Click] = {
+      DB.withConnection {
+        implicit connection =>
+          SQL("select * from click where lid = {lid} "+opts+";").on("lid" -> lid).using(parser).list()
+      }
   }
 }

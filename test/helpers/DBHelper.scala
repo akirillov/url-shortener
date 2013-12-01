@@ -1,9 +1,10 @@
 package helpers
 
-import models.{Link, Folder, User}
+import models.{Click, Link, Folder, User}
 import play.api.db.DB
 import anorm._
 import play.api.Play.current
+import java.util.GregorianCalendar
 
 
 object DBHelper {
@@ -70,10 +71,7 @@ object DBHelper {
 
           Link(new Id(id), uid, fid, url, code, 0)
       }
-
   }
-
-
 
   def dropUserBy(id: Pk[Long]) =
     DB.withConnection { implicit connection =>

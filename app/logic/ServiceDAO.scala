@@ -114,17 +114,7 @@ object ServiceDAO {
         Folder.getByTextId(folderID, request.token) match {
           case None => throw new Exception("No folder with such ID!")
           case Some(folder) =>
-
-            val limits = (request.offset, request.limit) match {
-                case (Some(offset), None) => "limit -1 offset "+offset
-                case (None, Some(limit)) => "limit "+limit
-                case (Some(offset), Some(limit)) => "limit "+limit+" offset "+offset
-                case _ => ""
-              }
-
-          println("DEBUG: "+limits)
-
-            Link.getLinksByFolderID(folder.id.get, limits).map(link => LinkResponse(link.url, link.code)).toList
+            Link.getLinksByFolderID(folder.id.get, computeLimits(request)).map(link => LinkResponse(link.url, link.code)).toList
         }
       }
     }
@@ -134,16 +124,7 @@ object ServiceDAO {
     User.findByToken(request.token) match {
       case None => throw new Exception("No user with such token! Incident will be reported.")
       case Some(user) => {
-            val limits = (request.offset, request.limit) match {
-              case (Some(offset), None) => "limit -1 offset "+offset
-              case (None, Some(limit)) => "limit "+limit
-              case (Some(offset), Some(limit)) => "limit "+limit+" offset "+offset
-              case _ => ""
-            }
-
-            println("DEBUG: "+limits)
-
-            Link.getLinksByUserID(user.id.get, limits).map(link => LinkResponse(link.url, link.code)).toList
+            Link.getLinksByUserID(user.id.get, computeLimits(request)).map(link => LinkResponse(link.url, link.code)).toList
       }
     }
   }
@@ -158,19 +139,23 @@ object ServiceDAO {
   }
 
   def getClicks(code: String, request: GetDataRequest): List[ClickResponse] = {
+      User.findByToken(request.token) match {
+        case None => throw new Exception("No user with such token! Incident will be reported.")
+        case Some(user) => {
+          Link.findByCode(code) match {
+            case None => throw new Exception("Code does not exist!")
+            case Some(link) =>
 
-    //TODO: implement
-
-
-    null
+              Click.getClicksByLinkID(link.id.get, computeLimits(request)).map(click => ClickResponse(click.referrer, click.remoteIP)).toList
+          }
+        }
+      }
   }
 
-
-
-
-
-
-
-
-
+  private def computeLimits(request: GetDataRequest) = (request.offset, request.limit) match {
+    case (Some(offset), None) => "limit -1 offset "+offset
+    case (None, Some(limit)) => "limit "+limit
+    case (Some(offset), Some(limit)) => "limit "+limit+" offset "+offset
+    case _ => ""
+  }
 }
