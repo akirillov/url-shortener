@@ -42,37 +42,31 @@ object ServiceDAO {
    * @return [[controllers.LinkResponse]] instance
    */
   def shortenUrl(request: PostLinkRequest): LinkResponse = {
+    User.findByToken(request.token) match {
+      case None => throw new Exception("No user with such token! Incident will be reported.")
+      case Some(user) => {
 
-    /*
+        val code = request.code match {
+          case Some(c) => {
+            if(Link.checkExists(c)) throw new Exception("Code unavailable, sorry")
+            else c
+          }
+          case None => shorten(request.url)
+        }
 
-    Это укороченный адрес.
-Можно создать ссылку с желаемым кодом, тогда, если код доступен, то возвращается он же.
-Если код недоступен, то, наверное, сервис говорит «ошибка, код недоступен». Это было бы самым простым вариантом.
-Если код не передан, генерируется случайный свободный код.
+        val folderID = request.folderId match {
+          case Some(fid) => Folder.getByTextId(fid, request.token) match {
+            case Some(folder) => folder.id.get
+            case None => Folder.createFolder(user.id.get, fid, "default").id.get
+          }
+          case None => Folder.getRootFolderForUser(request.token).id.get
+        }
 
-    */
+        Link.createLink(User.findByToken(request.token).get.id.get, folderID, request.url, code)
 
-    val code = request.code match {
-      case Some(c) => {
-        if(Link.checkExists(c)) throw new Exception("Code unavailable, sorry")
-        else c
+        LinkResponse(request.url, code)
       }
-      case None => shorten(request.url)
     }
-
-    //TODO: really, folder mechanics suck (how do we CRUD folders?)
-
-    val folderID = request.folderId match {
-      case Some(fid) => Folder.getByTextId(fid, request.token) match {
-        case Some(folder) => folder.id.get
-        case None => throw new Exception("Folder does not exist, sorry")
-      }
-      case None => Folder.getRootFolderForUser(request.token).id.get
-    }
-
-    Link.createLink(User.findByToken(request.token).get.id.get, folderID, request.url, code)
-
-    LinkResponse(request.url, code)
   }
 
   /**

@@ -6,7 +6,7 @@ import play.api.test.Helpers._
 import play.api.test.FakeApplication
 import helpers.DBHelper._
 import play.api.Play.current
-import models.{Link, User}
+import models.{Folder, Click, Link, User}
 import controllers._
 import play.api.db.DB
 import anorm._
@@ -110,11 +110,24 @@ class LogicTests extends Specification {
     }
 
 
-    "throw exception if specified folder does not exist" in {
+    "create folder if specified folder does not exist" in {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
-        createUser(User(null, "uid", "token"))
+        val uid = createUser(User(null, "uid", "token")).id.get
 
-        ServiceDAO.shortenUrl(PostLinkRequest("token", "awesome.com", None, Some("folder"))) must throwA(new Exception("Folder does not exist, sorry"))
+        DB.withConnection {
+          implicit connection =>
+            SQL("select * from folder where uid = {uid} and text_id = {text_id}").on("uid" -> uid, "text_id" -> "folder").using(Folder.parser).list()
+        }.size mustEqual 0
+
+        ServiceDAO.shortenUrl(PostLinkRequest("token", "awesome.com", None, Some("folder")))
+
+        val folder = DB.withConnection {
+          implicit connection =>
+            SQL("select * from folder where uid = {uid} and text_id = {text_id}").on("uid" -> uid, "text_id" -> "folder").using(Folder.parser).list().head
+        }
+
+        folder.textId mustEqual "folder"
+        folder.userId mustEqual uid
       }
     }
 

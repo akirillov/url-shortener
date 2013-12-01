@@ -69,6 +69,22 @@ object Folder  {
     }
   }
 
+  def createFolder(uid: Long, folderID: String, title: String): Folder  = {
+    DB.withConnection {
+      implicit connection =>
+        SQL("insert into folder(uid, text_id, title) values ({uid}, {text_id}, {title});").on(
+          'uid -> uid,
+          'text_id -> folderID,
+          'title -> title
+        ).executeUpdate()
+        val id = SQL("SELECT SCOPE_IDENTITY()")().collect {
+          case Row(id: Int) => id
+        }.head
+
+        Folder(new Id(id), uid, folderID, title)
+    }
+  }
+
   def getById(id: Long): Option[Folder] = {
     DB.withConnection {
       implicit connection =>
