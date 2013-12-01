@@ -1,8 +1,9 @@
 package controllers
 
 import play.api.mvc._
-import play.api.libs.json.{JsValue, Reads, JsError}
+import play.api.libs.json._
 import JsonFormats._
+import logic.ServiceDAO
 
 object Application extends Controller {
 
@@ -14,7 +15,7 @@ object Application extends Controller {
   def getToken = Action(parse.json) { request =>
     request.body.validate[TokenRequest].map{
 
-      case tR: TokenRequest => Ok(tR.toString())
+      case request: TokenRequest => try{ Ok(ServiceDAO.createToken(request.userId, request.secret)) } catch { case e: Exception => BadRequest(e.getMessage)}
 
     }.recoverTotal{
       e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
@@ -29,9 +30,7 @@ object Application extends Controller {
   */
   def postLink = Action(parse.json) { request =>
     request.body.validate[PostLinkRequest].map{
-
-      case tR: PostLinkRequest => Ok(tR.toString())
-
+      case request: PostLinkRequest => try{ Ok(Json.toJson(ServiceDAO.shortenUrl(request))) } catch { case e: Exception => BadRequest(e.getMessage)}
     }.recoverTotal{
       e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
     }
@@ -41,7 +40,7 @@ object Application extends Controller {
   def postStats(code: String) = Action(parse.json) { request =>
     request.body.validate[PostStatsRequest].map{
 
-      case tR: PostStatsRequest => Ok(tR.toString())
+      case request: PostStatsRequest => try { Ok(ServiceDAO.postClick(code, request)) } catch {case e: Exception => BadRequest(e.getMessage)}
 
     }.recoverTotal{
       e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
@@ -56,11 +55,16 @@ object Application extends Controller {
 
   curl --header "Content-type: application/json" --request GET --data '{"token": "294ffba18b49dcba153f144a651aa926", "limit": 1000}' http://localhost:9000/link
   */
+  /**
+   * Method returns either link information(clicks, url etc.) if code specified or list of links for user identified by token
+   * @param code code of the link
+   */
   def getLink(code: String) = Action(parse.json) { request =>
     request.body.validate[GetDataRequest].map{
-
-      case tR: GetDataRequest => Ok(tR.toString())
-
+      case request: GetDataRequest => code match {
+        case "" => try { Ok(Json.toJson(ServiceDAO.getUserLinks(request))) } catch {case e: Exception => BadRequest(e.getMessage)}
+        case x if !x.isEmpty() => try{ Ok(Json.toJson(ServiceDAO.getStatsForCode(code, request.token))) } catch {case e: Exception => BadRequest(e.getMessage)}
+      }
     }.recoverTotal{
       e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
     }
@@ -70,7 +74,10 @@ object Application extends Controller {
   def getFolder(id: String) = Action(parse.json) { request =>
     request.body.validate[GetDataRequest].map{
 
-      case tR: GetDataRequest => Ok(tR.toString())
+      case request: GetDataRequest => id match {
+        case "" => try { Ok(Json.toJson(ServiceDAO.getFolders(request.token)))} catch {case e: Exception => BadRequest(e.getMessage)}
+        case x if !x.isEmpty() => try { Ok(Json.toJson(ServiceDAO.getFolderLinks(id, request)))} catch {case e: Exception => BadRequest(e.getMessage)}
+      }
 
     }.recoverTotal{
       e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
@@ -81,7 +88,7 @@ object Application extends Controller {
   def getClicks(code: String) = Action(parse.json) { request =>
     request.body.validate[GetDataRequest].map{
 
-      case tR: GetDataRequest => Ok(tR.toString())
+      case request: GetDataRequest => try{ Ok(Json.toJson(ServiceDAO.getClicks(code, request))) } catch {case e: Exception => BadRequest(e.getMessage)}
 
     }.recoverTotal{
       e => BadRequest("Detected error:"+ JsError.toFlatJson(e))

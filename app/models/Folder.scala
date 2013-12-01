@@ -28,11 +28,11 @@ object Folder  {
   def getRootFolderForUser(token: String): Folder = {
     val uid = User.findByToken(token).get.id
 
-    getByTextId("/", token) match {
+    getByTextId("root", token) match {
       case Some(folder) => folder
 
       case None =>{
-        val fid = "/"
+        val fid = "root"
         val title = "root folder"
 
         DB.withConnection { implicit connection =>

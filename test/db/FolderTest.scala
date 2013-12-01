@@ -57,7 +57,7 @@ class FolderTest  extends Specification {
 
         val folder = Folder.getRootFolderForUser("token")
 
-        folder.textId mustEqual "/"
+        folder.textId mustEqual "root"
         folder.title mustEqual "root folder"
       }
     }
@@ -65,11 +65,11 @@ class FolderTest  extends Specification {
       running(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         createUser(User(null, "uid", "token"))
 
-        createFolder("token", "/", "root folder")
+        createFolder("token", "root", "root folder")
 
         val folder = Folder.getRootFolderForUser("token")
 
-        folder.textId mustEqual "/"
+        folder.textId mustEqual "root"
         folder.title mustEqual "root folder"
       }
     }

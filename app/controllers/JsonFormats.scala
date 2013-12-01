@@ -6,6 +6,8 @@ import play.api.libs.json.Reads._
 
 object JsonFormats {
 
+  //REQUESTS
+
   //Reads -------------------------------------------------------
 
   implicit val tokenRequestReads: Reads[TokenRequest] = (
@@ -33,7 +35,56 @@ object JsonFormats {
     )(GetDataRequest)
 
   //Writes -------------------------------------------------------
+  implicit val tokenRequestWrites: Writes[TokenRequest] = (
+    (__ \ "user_id").write[String] and
+      (__ \ "secret").write[String]
+    )(unlift(TokenRequest.unapply))
 
+  implicit val postStatsRequestWrites: Writes[PostStatsRequest] = (
+    (__ \ "referrer").write[String] and
+      (__ \ "remote_ip").write[String]
+    )(unlift(PostStatsRequest.unapply))
+
+  implicit val linkPostRequestWrites: Writes[PostLinkRequest] = (
+    (__ \ "token").write[String] and
+      (__ \ "url").write[String] and
+      (__ \ "code").writeNullable[String]and
+      (__ \ "folder_id").writeNullable[String]
+    )(unlift(PostLinkRequest.unapply))
+
+  implicit val getDataRequestWrites: Writes[GetDataRequest] = (
+    (__ \ "token").write[String] and
+      (__ \ "offset").writeNullable[Long]and
+      (__ \ "limit").writeNullable[Long]
+    )(unlift(GetDataRequest.unapply))
+
+
+
+  //RESPONSES
+
+  //Reads ----------------------------------------------------------------------------------------
+  implicit val linkReads: Reads[LinkResponse] = (
+    (__ \ "url").read[String] and
+      (__ \ "code").read[String]
+    )(LinkResponse)
+
+  implicit val folderReads: Reads[FolderResponse] = (
+    (__ \ "id").read[String] and
+      (__ \ "title").read[String]
+    )(FolderResponse)
+
+  implicit val codeStatsReads: Reads[CodeStatsResponse] = (
+    (__ \ "link").read[LinkResponse] and
+      (__ \ "folder_id").read[String] and
+      (__ \ "clicks").read[Long]
+    )(CodeStatsResponse)
+
+  implicit val clickReads: Reads[ClickResponse] = (
+    (__ \ "referrer").read[String] and
+      (__ \ "remoteIP").read[String]
+    )(ClickResponse)
+
+  //Writes ----------------------------------------------------------------------------------------
   implicit val linkWrites: Writes[LinkResponse] = (
     (__ \ "url").write[String] and
       (__ \ "code").write[String]
