@@ -62,6 +62,13 @@ object Folder  {
     }
   }
 
+  def getFoldersByUserId(id: Long): Seq[Folder] = {
+    DB.withConnection {
+      implicit connection =>
+        SQL("select * from folder where uid = {uid}").on("uid" -> id).using(parser).list()
+    }
+  }
+
   def getById(id: Long): Option[Folder] = {
     DB.withConnection {
       implicit connection =>

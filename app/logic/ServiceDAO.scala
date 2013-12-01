@@ -149,11 +149,18 @@ object ServiceDAO {
   }
 
   def getFolders(token: String): List[FolderResponse] = {
-
-    null
+    User.findByToken(token) match {
+      case None => throw new Exception("No user with such token! Incident will be reported.")
+      case Some(user) => {
+        Folder.getFoldersByUserId(user.id.get).map(folder => FolderResponse(folder.textId, folder.title)).toList
+      }
+    }
   }
 
-  def getClicks(request: GetDataRequest): List[ClickResponse] = {
+  def getClicks(code: String, request: GetDataRequest): List[ClickResponse] = {
+
+    //TODO: implement
+
 
     null
   }
